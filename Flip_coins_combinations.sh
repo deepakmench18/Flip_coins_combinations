@@ -1,10 +1,63 @@
+singlet(){
+heads=1
+tails=0
+n=$1
 declare -A res
-echo "Enter n for the loop "
-read n
+for (( i=0;i<n;i++ ))
+do
+   toss=$((RANDOM%2))
+   if [ $toss -eq $heads ]
+   then
+       res['heads']=$(("${res['heads']}"+1))
+   else
+       res['tails']=$(("${res['tails']}"+1))
+
+   fi
+done
+headcnt=$(($n-${res['heads']}))
+headpercent=$((($headcnt*100)/$n))
+sheadpercent=$((100-$headpercent))
+stailpercent=$headpercent
+echo "Singlet head=$((100-$headpercent))% and tails=$headpercent%"
+}
+oublet(){
+n=$1
+declare -A res
+res+=( ['hh']=0 ['ht']=0 ['th']=0 ['tt']=0 )
 hh=0
 ht=1
 th=2
 tt=3
+for (( i=0;i<n;i++ ))
+do
+   toss=$((RANDOM%4))
+   if [ $toss -eq $hh ]
+   then
+       res['hh']=$(("${res['hh']}"+1))
+   elif [ $toss -eq $ht ]
+   then
+       res['ht']=$(("${res['ht']}"+1))
+   elif [ $toss -eq $th ]
+   then
+       res['th']=$(("${res['th']}"+1))
+
+   else
+       res['tt']=$(("${res['tt']}"+1))
+
+   fi
+done
+hhpercent=$((("${res['hh']}"*100)/$n))
+htpercent=$((("${res['ht']}"*100)/$n))
+ttpercent=$((("${res['tt']}"*100)/$n))
+thpercent=$((100-$hhpercent-$htpercent-$ttpercent))
+dheadpercent=$((100-$ttpercent-($thpercent+$htpercent)/2))
+dtailpercent=$((100-$dheadpercent))
+echo "Doublet heads=$dheadpercent% and tails=$((100-$dheadpercent))%"
+}
+
+tripplet(){
+n=$1
+declare -A res
 res+=( ['hhh']=0 ['hht']=0 ['hth']=0 ['thh']=0 ['htt']=0 ['tht']=0 ['tth']=0 ['ttt']=0 )
 hhh=0
 hht=1
@@ -16,22 +69,15 @@ tth=6
 ttt=7
 for (( i=0;i<n;i++ ))
 do
-   toss=$((RANDOM%4))
-   if [ $toss -eq $hh ]
    toss=$((RANDOM%8))
    if [ $toss -eq $hhh ]
    then
-       res['hh']=$(("${res['hh']}"+1))
-   elif [ $toss -eq $ht ]
        res['hhh']=$(("${res['hhh']}"+1))
    elif [ $toss -eq $hht ]
    then
-       res['ht']=$(("${res['ht']}"+1))
-   elif [ $toss -eq $th ]
        res['hht']=$(("${res['hht']}"+1))
    elif [ $toss -eq $hth ]
    then
-       res['th']=$(("${res['th']}"+1))
        res['hth']=$(("${res['hth']}"+1))
 
    elif [ $toss -eq $thh ]
@@ -48,55 +94,93 @@ do
        res['tth']=$(("${res['tth']}"+1))
 
    else
-       res['tt']=$(("${res['tt']}"+1))
        res['ttt']=$(("${res['ttt']}"+1))
 
    fi
 done
-hhcnt="${res['hh']}"
-htcnt="${res['ht']}"
-ttcnt="${res['tt']}"
-hhhcnt="${res['hhh']}"
-hhtcnt="${res['hht']}"
-hthcnt="${res['hth']}"
-thhcnt="${res['thh']}"
-httcnt="${res['htt']}"
-thtcnt="${res['tht']}"
-tthcnt="${res['tth']}"
-tttcnt="${res['ttt']}"
+hhhpercent=$((("${res['hhh']}"*100)/$n))
+hhtpercent=$((("${res['hht']}"*100)/$n))
+hthpercent=$((("${res['hth']}"*100)/$n))
+thhpercent=$((("${res['thh']}"*100)/$n))
+httpercent=$((("${res['htt']}"*100)/$n))
+thtpercent=$((("${res['tht']}"*100)/$n))
+tthpercent=$((("${res['tth']}"*100)/$n))
+tttpercent=$((("${res['ttt']}"*100)/$n))
+
+theadpercent=$(($hhhpercent+($hhtpercent+$hthpercent+$thhpercent+$httpercent+$thtpercent+$tthpercent)/2))
+ttailpercent=$((100-$theadpercent))
+echo "Tripplet heads=$theadpercent% and tails=$((100-$theadpercent))%"
+}
 
 
-hhhpercent=$((($hhhcnt*100)/$n))
-hhtpercent=$((($hhtcnt*100)/$n))
-hthpercent=$((($hthcnt*100)/$n))
-thhpercent=$((($thhcnt*100)/$n))
-httpercent=$((($httcnt*100)/$n))
-thtpercent=$((($thtcnt*100)/$n))
-tthpercent=$((($tthcnt*100)/$n))
-tttpercent=$((($tttcnt*100)/$n))
+echo "Enter n for the loop "
+read n
+singlet $n
+doublet $n
+tripplet $n
 
-echo "hhh=$hhhpercent%"
-echo "hht=$hhtpercent%"
-echo "hth=$hthpercent%"
-echo "thh=$thhpercent%"
-echo "htt=$httpercent%"
-echo "tht=$thtpercent%"
-echo "tth=$tthpercent%"
-echo "ttt=$tttpercent%"
+if [ $sheadpercent -gt $dheadpercent ] && [ $sheadpercent -gt $theadpercent ]
+then
+   echo "winner is singlet combination"
+elif [ $sheadpercent -eq $dheadpercent ] && [ $sheadpercent -gt $theadpercent ]
+then
+   echo "Tie between singlet & doublet combination"
+elif [ $sheadpercent -gt $dheadpercent ] && [ $sheadpercent -eq $theadpercent ]
+   then
+   echo "Tie between singlet & tripplet  combination"
+fi
 
-hhpercent=$((($hhcnt*100)/$n))
-htpercent=$((($htcnt*100)/$n))
-ttpercent=$((($ttcnt*100)/$n))
-thpercent=$((100-$hhpercent-$htpercent-$ttpercent))
-headpercent=$((100-$ttpercent-($thpercent+$htpercent)/2))
-echo "hh=${res['hh']}"
-echo "ht=${res['ht']}"
-echo "th=${res['th']}"
-echo "tt=${res['tt']}"
-echo "hh=$hhpercent%"
-echo "ht=$htpercent%"
-echo"th=$thpercent%"
-echo "tt=$ttpercent%"
-headpercent=$(($hhhpercent+($hhtpercent+$hthpercent+$thhpercent+$httpercent+$thtpercent+$tthpercent)/2))
-echo "heads=$headpercent%"
-echo "tails=$((100-$headpercent))%"
+if [ $dheadpercent -gt $sheadpercent ] && [ $dheadpercent -gt $theadpercent ]
+then
+   echo "winner is doublet combination"
+elif [ $dheadpercent -eq $sheadpercent ] && [ $dheadpercent -gt $theadpercent ]
+then
+   echo "Tie between singlet & doublet combination"
+elif [ $dheadpercent -gt $dheadpercent ] && [ $dheadpercent -eq $theadpercent ]
+then
+   echo "Tie between doublet & tripplet combination"
+fi
+
+if [ $theadpercent -gt $sheadpercent ] && [ $theadpercent -gt $dheadpercent ]
+then
+   echo "winner is tripplet combination"
+elif [ $theadpercent -eq $sheadpercent ] && [ $theadpercent -gt $dheadpercent ]
+then
+   echo "Tie between tripplet & singlet combination"
+elif [ $theadpercent -gt $sheadpercent ] && [ $theadpercent -eq $dheadpercent ]
+then
+   echo "Tie between doublet & tripplet combination"
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
